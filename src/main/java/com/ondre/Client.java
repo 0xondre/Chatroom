@@ -5,7 +5,7 @@ import java.net.Socket;
 import java.util.Arrays;
 import java.util.Scanner;
 
-public class Client implements Runnable{
+public class Client implements Runnable {
 
     private Socket client;
     private BufferedReader in;
@@ -13,8 +13,8 @@ public class Client implements Runnable{
     private boolean done;
 
     @Override
-    public void run(){
-        try{
+    public void run() {
+        try {
             client = new Socket("127.0.0.1", 9999);
             out = new PrintWriter(client.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(client.getInputStream()));
@@ -24,23 +24,23 @@ public class Client implements Runnable{
             t.start();
 
             String inMessage;
-            while((inMessage = in.readLine()) != null){
+            while ((inMessage = in.readLine()) != null) {
                 System.out.println(inMessage);
             }
-        }catch (IOException e){
+        } catch (IOException e) {
             shutdown();
         }
     }
 
-    public void shutdown(){
-        done=true;
-        try{
+    public void shutdown() {
+        done = true;
+        try {
             in.close();
             out.close();
-            if(!client.isClosed()){
+            if (!client.isClosed()) {
                 client.close();
             }
-        }catch (IOException ignored){
+        } catch (IOException ignored) {
         }
     }
 
@@ -51,27 +51,26 @@ public class Client implements Runnable{
         return filePath;
     }
 
-    class InputHandler implements Runnable{
+    class InputHandler implements Runnable {
 
         @Override
         public void run() {
             try {
                 BufferedReader inReader = new BufferedReader(new InputStreamReader(System.in));
-                while(!done){
+                while (!done) {
                     String message = inReader.readLine();
-                    if(message.equals("/quit")){
+                    if (message.equals("/quit")) {
                         out.println(message);
                         inReader.close();
                         shutdown();
                     } else if (message.equals("/sendfile")) {
-                    String filePath = getFileToSend();
-                    sendFile(filePath);
-                    }
-                    else {
+                        String filePath = getFileToSend();
+                        sendFile(filePath);
+                    } else {
                         out.println(message);
                     }
                 }
-            }catch (IOException e){
+            } catch (IOException e) {
                 shutdown();
             }
         }
@@ -100,8 +99,6 @@ public class Client implements Runnable{
             System.out.println("File sent successfully!");
         }
     }
-
-
     public static void main(String[] args) {
         Client client = new Client();
         client.run();

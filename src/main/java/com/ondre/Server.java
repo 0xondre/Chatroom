@@ -7,23 +7,23 @@ import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class Server implements Runnable{
+public class Server implements Runnable {
 
     private final ArrayList<ConnectionHandler> connections;
     private ServerSocket server;
     private boolean done;
 
-    public Server(){
+    public Server() {
         connections = new ArrayList<>();
         done = false;
     }
 
     @Override
-    public void run(){
+    public void run() {
         try {
             server = new ServerSocket(9999);
             ExecutorService pool = Executors.newCachedThreadPool();
-            while(!done) {
+            while (!done) {
                 Socket client = server.accept();
                 ConnectionHandler connectionHandler = new ConnectionHandler(client);
                 connections.add(connectionHandler);
@@ -35,15 +35,15 @@ public class Server implements Runnable{
 
     }
 
-    public void broadcast(String message){
-        for(ConnectionHandler connection: connections){
-            if(connection != null){
+    public void broadcast(String message) {
+        for (ConnectionHandler connection : connections) {
+            if (connection != null) {
                 connection.sendMessage(message);
             }
         }
     }
 
-    public void shutdown(){
+    public void shutdown() {
         try {
             done = true;
             if (!server.isClosed()) {
@@ -52,24 +52,23 @@ public class Server implements Runnable{
                     connection.shutdown();
                 }
             }
-        }catch (IOException ignored){
+        } catch (IOException ignored) {
         }
     }
 
-    class ConnectionHandler implements Runnable{
+    class ConnectionHandler implements Runnable {
 
         private final Socket client;
         private BufferedReader in;
         private PrintWriter out;
 
-        public ConnectionHandler(Socket client){
+        public ConnectionHandler(Socket client) {
             this.client = client;
-
         }
 
         @Override
-        public void run(){
-            try{
+        public void run() {
+            try {
                 out = new PrintWriter(client.getOutputStream(), true);
                 in = new BufferedReader(new InputStreamReader(client.getInputStream()));
 
@@ -79,10 +78,10 @@ public class Server implements Runnable{
                 broadcast(nickname + " joined the chat");
 
                 String message;
-                while ((message=in.readLine()) != null){
-                    if(message.startsWith("/nick")){
+                while ((message = in.readLine()) != null) {
+                    if (message.startsWith("/nick")) {
                         String[] messageArray = message.split(" ", 2);
-                        if(messageArray.length==2){
+                        if (messageArray.length == 2) {
                             System.out.println(nickname + " renamed to " + messageArray[1]);
                             broadcast(nickname + " renamed to " + messageArray[1]);
                             nickname = messageArray[1];
@@ -91,18 +90,18 @@ public class Server implements Runnable{
                             out.println("No nickname provided");
                         }
 
-                    }else if(message.startsWith("/quit")){
+                    } else if (message.startsWith("/quit")) {
                         broadcast(nickname + " left the chat");
                         shutdown();
-                    }else if (message.startsWith("FILE_TRANSFER_START")) {
+                    } else if (message.startsWith("FILE_TRANSFER_START")) {
                         String filename = in.readLine();
                         long fileSize = Long.parseLong(in.readLine());
                         receiveFile(filename, fileSize);
-                    }else{
+                    } else {
                         broadcast(nickname + ": " + message);
                     }
                 }
-            }catch (IOException e){
+            } catch (IOException e) {
                 shutdown();
             }
         }
@@ -114,10 +113,8 @@ public class Server implements Runnable{
                 file.getParentFile().mkdirs();
             }
 
-            // Open file output stream
             FileOutputStream fileOutputStream = new FileOutputStream(file);
 
-            // Receive file data in chunks
             byte[] buffer = new byte[1024];
             int bytesReceived = 0;
             while (bytesReceived < fileSize) {
@@ -129,24 +126,23 @@ public class Server implements Runnable{
                 bytesReceived += bytesRead;
             }
 
-            // Close streams and confirm transfer
             fileOutputStream.close();
             out.println("FILE_TRANSFER_SUCCESS");
             System.out.println("File received: " + filename);
         }
 
-        public void sendMessage(String message){
+        public void sendMessage(String message) {
             out.println(message);
         }
 
-        public void shutdown(){
+        public void shutdown() {
             try {
                 in.close();
                 out.close();
                 if (!client.isClosed()) {
                     client.close();
                 }
-            }catch (IOException ignored) {
+            } catch (IOException ignored) {
             }
         }
     }

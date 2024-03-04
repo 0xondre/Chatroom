@@ -99,6 +99,7 @@ public class Client implements Runnable {
             System.out.println("File sent successfully!");
         }
     }
+
     public static void main(String[] args) {
         Client client = new Client();
         client.run();

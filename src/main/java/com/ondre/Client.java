@@ -1,4 +1,4 @@
-package org.example;
+package com.ondre;
 
 import java.io.*;
 import java.net.Socket;

@@ -97,6 +97,12 @@ public class Server implements Runnable {
                         String filename = in.readLine();
                         long fileSize = Long.parseLong(in.readLine());
                         receiveFile(filename, fileSize);
+                    } else if (message.startsWith("/download")){
+                      File file = new File("received_files/");
+                      broadcast("Enter name of file you want to download, possible files: ");
+                        for(File name: file.listFiles()){
+                            broadcast(name.toString());
+                        }
                     } else {
                         broadcast(nickname + ": " + message);
                     }
